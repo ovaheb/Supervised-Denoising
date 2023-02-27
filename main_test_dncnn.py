@@ -68,7 +68,7 @@ def main():
     # ----------------------------------------
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', type=str, default='dncnn_25', help='dncnn_15, dncnn_25, dncnn_50, dncnn_gray_blind, dncnn_color_blind, dncnn3')
-    parser.add_argument('--testset_name', type=str, default='set12', help='test set, bsd68 | set12')
+    parser.add_argument('--testset_name', type=str, default='set12', help='test set, bsd68 | set12 | HST | CosmicCoNN')
     parser.add_argument('--noise_level_img', type=int, default=15, help='noise level: 15, 25, 50')
     parser.add_argument('--x8', type=bool, default=False, help='x8 to boost performance')
     parser.add_argument('--show_img', type=bool, default=False, help='show the image')
@@ -130,7 +130,8 @@ def main():
     test_results = OrderedDict()
     test_results['psnr'] = []
     test_results['ssim'] = []
-
+    test_results['original_psnr'] = []
+    test_results['original_ssim'] = []
     logger.info('model_name:{}, image sigma:{}'.format(args.model_name, args.noise_level_img))
     logger.info(L_path)
     L_paths = util.get_image_paths(L_path)
@@ -182,9 +183,13 @@ def main():
 
             psnr = util.calculate_psnr(img_E, img_H, border=border)
             ssim = util.calculate_ssim(img_E, img_H, border=border)
+            original_psnr = util.calculate_psnr(img_L, img_H, border=border)
+            original_ssim = util.calculate_ssim(img_L, img_H, border=border)
             test_results['psnr'].append(psnr)
             test_results['ssim'].append(ssim)
-            logger.info('{:s} - PSNR: {:.2f} dB; SSIM: {:.4f}.'.format(img_name+ext, psnr, ssim))
+            test_results['original_psnr'].append(original_psnr)
+            test_results['original_ssim'].append(original_ssim)
+            logger.info('{:s} - PSNR: {:.2f} -> {:.2f} dB; SSIM: {:.2f} -> {:.4f}.'.format(img_name+ext, original_psnr, psnr, original_ssim, ssim))
             util.imshow(np.concatenate([img_E, img_H], axis=1), title='Recovered / Ground-truth') if args.show_img else None
 
         # ------------------------------------
